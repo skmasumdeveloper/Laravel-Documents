@@ -30,6 +30,7 @@ class CreatePostsTable extends Migration
             $table->id();
             $table->string('title');
             $table->text('body');
+            $table->string('image')->nullable(); // Adding image column
             $table->timestamps();
         });
     }
@@ -70,9 +71,21 @@ class PostController extends Controller
         $request->validate([
             'title' => 'required',
             'body' => 'required',
+            'image' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Validating image
         ]);
 
-        Post::create($request->all());
+        $post = new Post;
+        $post->title = $request->title;
+        $post->body = $request->body;
+
+        if ($request->hasFile('image')) {
+            $imageName = time().'.'.$request->image->extension();  
+            $request->image->move(public_path('images'), $imageName);
+            $post->image = $imageName;
+        }
+
+        $post->save();
+
         return redirect()->route('posts.index')->with('success', 'Post created successfully.');
     }
 
@@ -91,9 +104,20 @@ class PostController extends Controller
         $request->validate([
             'title' => 'required',
             'body' => 'required',
+            'image' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Validating image
         ]);
 
-        $post->update($request->all());
+        $post->title = $request->title;
+        $post->body = $request->body;
+
+        if ($request->hasFile('image')) {
+            $imageName = time().'.'.$request->image->extension();  
+            $request->image->move(public_path('images'), $imageName);
+            $post->image = $imageName;
+        }
+
+        $post->save();
+
         return redirect()->route('posts.index')->with('success', 'Post updated successfully.');
     }
 
@@ -129,6 +153,9 @@ class UserController extends Controller
         <div>
             <h2>{{ $post->title }}</h2>
             <p>{{ $post->body }}</p>
+            @if ($post->image)
+                <img src="{{ asset('images/' . $post->image) }}" width="100">
+            @endif
             <a href="{{ route('posts.show', $post->id) }}">View</a>
             <a href="{{ route('posts.edit', $post->id) }}">Edit</a>
             <form action="{{ route('posts.destroy', $post->id) }}" method="POST">
@@ -145,12 +172,14 @@ class UserController extends Controller
 
 @section('content')
     <h1>Create Post</h1>
-    <form action="{{ route('posts.store') }}" method="POST">
+    <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
         <label>Title:</label>
         <input type="text" name="title" required>
         <label>Body:</label>
         <textarea name="body" required></textarea>
+        <label>Image:</label>
+        <input type="file" name="image">
         <button type="submit">Create</button>
     </form>
 @endsection
@@ -160,13 +189,18 @@ class UserController extends Controller
 
 @section('content')
     <h1>Edit Post</h1>
-    <form action="{{ route('posts.update', $post->id) }}" method="POST">
+    <form action="{{ route('posts.update', $post->id) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
         <label>Title:</label>
         <input type="text" name="title" value="{{ $post->title }}" required>
         <label>Body:</label>
         <textarea name="body" required>{{ $post->body }}</textarea>
+        <label>Image:</label>
+        <input type="file" name="image">
+        @if ($post->image)
+            <img src="{{ asset('images/' . $post->image) }}" width="100">
+        @endif
         <button type="submit">Update</button>
     </form>
 @endsection
@@ -177,6 +211,9 @@ class UserController extends Controller
 @section('content')
     <h1>{{ $post->title }}</h1>
     <p>{{ $post->body }}</p>
+    @if ($post->image)
+        <img src="{{ asset('images/' . $post->image) }}" width="300">
+    @endif
     <a href="{{ route('posts.index') }}">Back to Posts</a>
 @endsection
 
