@@ -327,4 +327,48 @@ class UserController extends Controller
  * $user = User::updateOrCreate(['email' => 'john@example.com'], ['name' => 'John Doe', 'password' => bcrypt('password')]);
  */
 
+ // Common Validations :
+ $request->validate([
+    'title' => 'required|string|max:255',  // Required, must be a string, maximum length of 255 characters
+    'body' => 'required|min:10|max:5000',  // Required, minimum 10 characters, maximum 5000 characters
+    'email' => 'required|email|unique:users,email',  // Required, must be a valid email, and unique in the users table
+    'password' => 'required|min:8|confirmed',  // Required, minimum 8 characters, must be confirmed (with password_confirmation)
+    'age' => 'required|integer|min:18|max:99',  // Required, must be an integer between 18 and 99
+    'price' => 'required|numeric|min:0',  // Required, must be a number, minimum value of 0
+    'url' => 'nullable|url',  // Optional, must be a valid URL if provided
+    'date' => 'required|date|after:today',  // Required, must be a valid date, must be after today
+    'terms' => 'accepted',  // Must be accepted (checkbox or boolean)
+    'username' => 'required|alpha_dash|min:3|max:20|unique:users,username',  // Required, only letters, numbers, dashes, and underscores, unique in users table
+    'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',  // Optional, must be an image, allowed formats, maximum size 2MB
+    'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:10',  // Required, must be a valid phone number pattern, minimum 10 digits
+    'file' => 'nullable|file|mimes:pdf,doc,docx|max:10240',  // Optional, must be a file, allowed formats, maximum size 10MB
+    'ip_address' => 'nullable|ip',  // Optional, must be a valid IP address
+    'json' => 'nullable|json',  // Optional, must be valid JSON
+    'gender' => 'required|in:male,female,other',  // Required, must be one of the given options
+    'category_id' => 'required|exists:categories,id',  // Required, must exist in the categories table (foreign key validation)
+    'tags' => 'nullable|array',  // Optional, must be an array
+    'tags.*' => 'string|distinct|min:2',  // Each tag must be a string, distinct, and at least 2 characters
+    'birthdate' => 'required|date|before:today',  // Required, must be a valid date, and before today
+]);
+
+// Display validation errors
+{{-- Display validation errors --}}
+    @if ($errors->any())
+        <div style="color: red;">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+// Display success messages    
+    {{-- Display success message --}}
+    @if (session('success'))
+        <div style="color: green;">
+            {{ session('success') }}
+        </div>
+    @endif
+
 ?>
