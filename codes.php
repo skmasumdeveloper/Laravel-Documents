@@ -17,6 +17,9 @@
  * php artisan make:model Post -mcr
  */
 
+// Route code :
+Route::resource('posts', PostController::class);
+
 // Migration File: database/migrations/yyyy_mm_dd_create_posts_table.php
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
